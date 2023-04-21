@@ -74,7 +74,7 @@ def extract_parameters(tweets):
 
 
 # select the location to perform cleaning operation
-locations = ['australia', 'mumbai', 'northamerica', 'europe', 'texas']
+locations = ['australia_old', 'mumbai', 'northamerica', 'europe', 'texas']
 
 # iterate over locations and save the cleaned for each location
 for location in locations:
@@ -109,6 +109,8 @@ for location in locations:
 
     # Extract other parameters (entities, referenced tweets, etc.)
     df = extract_parameters(df)
+
+    df = df.loc[df['referenced_type'] == '', 'referenced_type'] = 'original'
 
     # Export the json
     df.to_json(f'../data/sample/cleaned/{location}_tweets.json')

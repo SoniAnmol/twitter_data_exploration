@@ -1,6 +1,5 @@
 """This file contain methods to generate visualisation of twitter data"""
 
-
 import json
 from collections import Counter
 
@@ -12,7 +11,7 @@ from langcodes import *
 from wordcloud import WordCloud, STOPWORDS
 
 
-def plot_verified_proportion(df, column_name, row, col, keywords, export=False, location=''):
+def plot_verified_proportion(df, column_name, row, col, keywords, export=False, export_to=''):
     """Plots proportion of verified useres using the keyword"""
     fig, axs = plt.subplots(row, col, figsize=(10, 5))
 
@@ -26,11 +25,11 @@ def plot_verified_proportion(df, column_name, row, col, keywords, export=False, 
     plt.suptitle(f'verified user proportion based on {column_name}'.upper())
     plt.tight_layout()
     if export:
-        plt.savefig(f'{location}_{column_name}_verified.png', bbox_inches='tight', dpi=300)
+        plt.savefig(f'{export_to}{column_name}_verified.png', bbox_inches='tight', dpi=300)
     plt.show()
 
 
-def plot_timeseries(df, keywords, column_name, export=False, location=''):
+def plot_timeseries(df, keywords, column_name, export=False, export_to=''):
     """Plots a timeseries plot of tweets based on the frequency of keywords provided"""
 
     keywords = list(keywords.keys())
@@ -67,11 +66,12 @@ def plot_timeseries(df, keywords, column_name, export=False, location=''):
         hovermode="x")
 
     if export:
-        fig.write_html(f"{location}_{column_name}.html")
+        fig.to_html(full_html=False, include_plotlyjs='cdn')
+        fig.write_html(f"{export_to}{column_name}.html", full_html=False, include_plotlyjs='cdn')
     fig.show()
 
 
-def plot_wordcloud(df, column_name, max_words=50, stop_words=None, collocations=False, location=''):
+def plot_wordcloud(df, column_name, max_words=50, stop_words=None, collocations=False, export_to=''):
     """This function generates a wordcloud for given column name"""
 
     if stop_words is None:
@@ -93,11 +93,11 @@ def plot_wordcloud(df, column_name, max_words=50, stop_words=None, collocations=
     # the matplotlib way:
     plt.imshow(wordcloud, interpolation='bilinear')
     plt.axis("off")
-    plt.savefig(f'{location}_{column_name}_wordcloud.png', bbox_inches='tight', dpi=300)
+    plt.savefig(f'{export_to}{column_name}_wordcloud.png', bbox_inches='tight', dpi=300)
     plt.show()
 
 
-def plot_language_chart(df, n_lang=None, export=False, location=''):
+def plot_language_chart(df, n_lang=None, export=False, export_to=''):
     """Plots a pie chart of languages used in the twitter data set"""
     lang = df['lang'].value_counts()
     if n_lang is None:
@@ -116,7 +116,8 @@ def plot_language_chart(df, n_lang=None, export=False, location=''):
         x=0.0, y=-0.2, showarrow=False)
 
     if export:
-        fig.write_html(f"{location}_languages.html")
+        fig.to_html(full_html=False, include_plotlyjs='cdn')
+        fig.write_html(f"{export_to}languages.html", full_html=False, include_plotlyjs='cdn')
     fig.show()
 
 
@@ -146,7 +147,7 @@ def get_top_tweets(df):
         f"\n\n Following is the tweet with most impressions authored by {d['impression_count']['username'].item()} with retweet count of {d['impression_count']['impression_count'].item()}\n {d['impression_count']['text'].item()}")
 
 
-def get_relevant_hashtags(df, relevant_context, location=''):
+def get_relevant_hashtags(df, relevant_context, export_to=''):
     """Plots and prints hashtags used in the listed relevant contexts"""
     # Identify the hashtags used by these contexts
     relevant_hashtags = []
@@ -167,7 +168,7 @@ def get_relevant_hashtags(df, relevant_context, location=''):
            textprops={'size': 'smaller'}, )
     plt.suptitle(f'Hashtags used in tweets having relevant context annotations'.upper())
     plt.tight_layout()
-    plt.savefig(f'{location}_most_relevant_hashtags.png', bbox_inches='tight', dpi=300)
+    plt.savefig(f'{export_to}most_relevant_hashtags.png', bbox_inches='tight', dpi=300)
     plt.show()
 
 
@@ -195,3 +196,10 @@ def read_json(file_name):
     # convert to a pandas DataFrame
     data = pd.DataFrame.from_dict(data)
     return data
+
+def get_popular_users(tweets, user_count=50):
+    "Returns a unique list of popular users based on followers"
+    popular_users = \
+    tweets.sort_values(by='followers_count', ascending=False).drop_duplicates(subset='username', inplace=False)[
+        'username'].to_list()[:user_count]
+    return popular_users
