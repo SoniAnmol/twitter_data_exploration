@@ -133,18 +133,18 @@ def get_top_tweets(df):
         f"count of {d['retweet_count']['retweet_count'].item()}\n {d['retweet_count']['text'].item()}")
 
     print(
-        f"\n\n Following is the most liked tweet authored by {d['like_count']['username'].item()} with retweet count of {d['like_count']['like_count'].item()}\n {d['like_count']['text'].item()}")
+        f"\n\n Following is the most liked tweet authored by {d['like_count']['username'].item()} with like count of {d['like_count']['like_count'].item()}\n {d['like_count']['text'].item()}")
 
     print(
-        f"\n\n Following is the most replied tweet authored by {d['reply_count']['username'].item()} with retweet "
+        f"\n\n Following is the most replied tweet authored by {d['reply_count']['username'].item()} with reply "
         f"count of {d['reply_count']['reply_count'].item()}\n {d['reply_count']['text'].item()}")
 
     print(
-        f"\n\n Following is the most quoted tweet authored by {d['quote_count']['username'].item()} with retweet "
+        f"\n\n Following is the most quoted tweet authored by {d['quote_count']['username'].item()} with quote "
         f"count of {d['quote_count']['quote_count'].item()}\n {d['quote_count']['text'].item()}")
 
     print(
-        f"\n\n Following is the tweet with most impressions authored by {d['impression_count']['username'].item()} with retweet count of {d['impression_count']['impression_count'].item()}\n {d['impression_count']['text'].item()}")
+        f"\n\n Following is the tweet with most impressions authored by {d['impression_count']['username'].item()} with impression count of {d['impression_count']['impression_count'].item()}\n {d['impression_count']['text'].item()}")
 
 
 def get_relevant_hashtags(df, relevant_context, export_to=''):
@@ -197,9 +197,10 @@ def read_json(file_name):
     data = pd.DataFrame.from_dict(data)
     return data
 
+
 def get_popular_users(tweets, user_count=50):
     "Returns a unique list of popular users based on followers"
     popular_users = \
-    tweets.sort_values(by='followers_count', ascending=False).drop_duplicates(subset='username', inplace=False)[
-        'username'].to_list()[:user_count]
+        tweets.sort_values(by='followers_count', ascending=False).drop_duplicates(subset='username', inplace=False)[
+            'username'].to_list()[:user_count]
     return popular_users
