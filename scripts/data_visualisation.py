@@ -8,6 +8,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from langcodes import *
+from tqdm import tqdm
 from wordcloud import WordCloud, STOPWORDS
 
 
@@ -204,3 +205,62 @@ def get_popular_users(tweets, user_count=50):
         tweets.sort_values(by='followers_count', ascending=False).drop_duplicates(subset='username', inplace=False)[
             'username'].to_list()[:user_count]
     return popular_users
+
+
+def hashtag_by_language(tweets, export_to=''):
+    language_list = list(tweets['lang'].value_counts().index)
+    remove_list = ['qme', 'qht', 'qam', 'und']
+    language_list = list(set(language_list) - set(remove_list))
+    lang_dict = {}
+    # Get top hashtags and context for each language
+    for language in tqdm(language_list, total=len(language_list)):
+        tweets_lang = tweets.loc[tweets['lang'] == language, ['hashtags', 'context_annotations']]
+        hashtags = ",".join(str(hashtag).strip() for hashtag in tweets_lang.hashtags)
+        hashtags = hashtags.lower().split(',')
+        hashtags = list(filter(None, hashtags))
+        # remove white space
+        hashtags = [hashtag.strip() for hashtag in hashtags]
+        context = ",".join(str(context) for context in tweets_lang.context_annotations)
+        context = context.lower().split(',')
+        if 'false' in context:
+            context = [i for i in context if i != 'false']
+        # remove white space
+        context = [c.strip() for c in context]
+        context = list(filter(None, context))
+        # sort the list based on most frequent hashtags and contexts
+
+        data = {'hashtag': hashtags, 'context': context, 'count': len(tweets_lang)}
+        lang_dict[language] = data
+    # Create a dataframe
+    data = pd.DataFrame.from_dict(lang_dict, orient='index')
+    data.reset_index(inplace=True)
+    data.rename(columns={'index': 'lang'}, inplace=True)
+    data['lang'] = [Language.make(language=standardize_tag(l)).display_name() for l in data.lang]
+    # plot the figure
+    fig = go.Figure()
+    for lang in data.lang:
+        counter = Counter(data.loc[data['lang'] == lang, 'hashtag'].item())
+        fig.add_trace(go.Bar(x=list(counter.keys()),
+                             y=list(counter.values()),
+                             name=lang,
+                             ))
+    fig.update_layout(title='hashtags based on each language'.upper(), uniformtext_minsize=12, uniformtext_mode='hide',
+                      hovermode='x')
+    fig.to_html(full_html=False, include_plotlyjs='cdn')
+    fig.write_html(f"{export_to}hashtag_languages.html", full_html=False, include_plotlyjs='cdn')
+    fig.show()
+
+    fig = go.Figure()
+    for lang in data.lang:
+        counter = Counter(data.loc[data['lang'] == lang, 'context'].item())
+        fig.add_trace(go.Bar(x=list(counter.keys()),
+                             y=list(counter.values()),
+                             name=lang,
+                             ))
+    fig.update_layout(title='context based on each language'.upper(), uniformtext_minsize=12, uniformtext_mode='hide',
+                      hovermode='x')
+    fig.to_html(full_html=False, include_plotlyjs='cdn')
+    fig.write_html(f"{export_to}context_languages.html", full_html=False, include_plotlyjs='cdn')
+    fig.show()
+
+
